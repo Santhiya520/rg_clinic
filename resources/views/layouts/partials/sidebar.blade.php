@@ -349,6 +349,16 @@
                                 <span class="nk-menu-text">Stock Report</span>
                             </a>
                         </li>
+
+                        {{-- Expiry Report --}}
+                        <li class="nk-menu-item">
+                            <a href="{{ route('expiry-report') }}" class="nk-menu-link">
+                                <span class="nk-menu-icon">
+                                    <em class="icon bi bi-clock-history"></em>
+                                </span>
+                                <span class="nk-menu-text">Expiry Report</span>
+                            </a>
+                        </li>
                     @endif
 
 
