@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab Test Report - {{ $item->labTest->name }}</title>
+    <style>
+        @page { size: A4; margin: 20mm; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; }
+        .print-container { max-width: 210mm; margin: 0 auto; padding: 15px; }
+        .header { text-align: center; padding-bottom: 10px; border-bottom: 2px solid #333; margin-bottom: 15px; }
+        .title { color: #333; font-size: 18px; font-weight: bold; margin: 10px 0; text-align: center; text-transform: uppercase; }
+        .patient-info { margin-bottom: 15px; padding: 12px; border: 1px solid #ddd; background: #f8f9fa; }
+        .info-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+        .info-item { display: flex; flex-direction: column; }
+        .info-label { font-weight: bold; color: #333; font-size: 11px; }
+        .info-value { color: #555; }
+        .test-table { width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 20px; }
+        .test-table th { background: #2c3e50; color: white; padding: 10px; text-align: left; font-weight: 600; }
+        .test-table td { padding: 8px 10px; border: 1px solid #dee2e6; vertical-align: top; }
+        .test-table tr:nth-child(even) { background: #f8f9fa; }
+        .result-cell { font-weight: bold; color: #2c3e50; }
+        .normal-range { color: #6c757d; font-size: 11px; }
+        .footer { text-align: center; margin-top: 25px; padding-top: 10px; border-top: 1px solid #ddd; font-size: 10px; color: #6c757d; }
+        .no-print { text-align: center; margin-top: 20px; }
+        .print-btn { padding: 10px 25px; background: #2c3e50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .print-btn:hover { background: #1a252f; }
+        .signature-area { margin-top: 40px; text-align: center; }
+        .signature-line { width: 250px; border-top: 1px solid #333; margin: 20px auto 5px; }
+        .signature-label { font-size: 11px; color: #666; }
+        @media print {
+            body { background: white; }
+            .print-container { padding: 0; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-container">
+        <!-- Hospital/Clinic Header -->
+        <div class="header">
+            <!-- Update the image path as needed -->
+            <img src="{{ asset('images/rg-banner.png') }}" style="width: 100%; height: auto;">
+        </div>
+
+        <!-- Patient Information -->
+        <div class="patient-info">
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Patient Name:</span>
+                    <span class="info-value">{{ $item->manualLabTest->patient->name }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Patient ID:</span>
+                    <span class="info-value">{{ $item->manualLabTest->patient->patient_id }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Age / Gender:</span>
+                    <span class="info-value">
+                        {{ $item->manualLabTest->patient->age ?? 'N/A' }} years /
+                        {{ ucfirst($item->manualLabTest->patient->gender ?? 'N/A') }}
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Reference No:</span>
+                    <span class="info-value">{{ $item->manualLabTest->reference_no }}-{{ $item->id }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Test Name:</span>
+                    <span class="info-value"><strong>{{ $item->labTest->name }}</strong></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Report Date:</span>
+                    <span class="info-value">
+                        {{ $item->completed_at ? $item->completed_at->format('d/m/Y h:i A') : now()->format('d/m/Y h:i A') }}
+                    </span>
+                </div>
+                @if($item->manualLabTest->patient->mobile)
+                <div class="info-item">
+                    <span class="info-label">Phone:</span>
+                    <span class="info-value">{{ $item->manualLabTest->patient->mobile }}</span>
+                </div>
+                @endif
+                @if($item->technician)
+                <div class="info-item">
+                    <span class="info-label">Conducted By:</span>
+                    <span class="info-value">{{ $item->technician->name }}</span>
+                </div>
+                @endif
+            </div>
+        </div>
+
+        <!-- Test Results Table -->
+        @if($item->subTests->isNotEmpty())
+        <div class="title">TEST RESULTS</div>
+        <table class="test-table">
+            <thead>
+                <tr>
+                    <th width="5%">#</th>
+                    <th width="35%">Test Parameter</th>
+                    <th width="15%">Result</th>
+                    <th width="15%">Unit</th>
+                    <th width="30%">Normal Range</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($item->subTests as $index => $subTest)
+                <tr>
+                    <td class="text-center">{{ $index + 1 }}</td>
+                    <td>{{ $subTest->test_name }}</td>
+                    <td class="result-cell">
+                        {{ $subTest->result ?? 'Not Entered' }}
+                    </td>
+                    <td>{{ $subTest->unit ?? 'N/A' }}</td>
+                    <td>
+                        <span class="normal-range">{{ $subTest->normal_range ?? 'N/A' }}</span>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+        @else
+        <div style="text-align: center; padding: 20px; color: #666;">
+            No test parameters available for this test.
+        </div>
+        @endif
+
+        <!-- Overall Result Summary -->
+        @if($item->result)
+        <div style="margin-top: 20px; padding: 15px; border: 1px solid #dee2e6; background: #f8f9fa;">
+            <h4 style="margin-bottom: 8px; color: #2c3e50;">Overall Result Summary</h4>
+            <p style="margin: 0; color: #555;">{{ $item->result }}</p>
+        </div>
+        @endif
+
+        <!-- Notes -->
+        @if($item->notes)
+        <div style="margin-top: 15px; padding: 12px; border-left: 3px solid #3498db; background: #e8f4fd;">
+            <h4 style="margin-bottom: 5px; color: #2c3e50; font-size: 13px;">Notes</h4>
+            <p style="margin: 0; color: #555;">{{ $item->notes }}</p>
+        </div>
+        @endif
+
+        <!-- Status Information -->
+        <div style="margin-top: 15px; padding: 10px; text-align: center;">
+            <span style="padding: 5px 15px; background: {{ $item->status == 'completed' ? '#28a745' : ($item->status == 'pending' ? '#ffc107' : '#dc3545') }}; color: white; border-radius: 20px;">
+                Status: {{ strtoupper($item->status) }}
+            </span>
+            @if($item->completed_at)
+            <span style="margin-left: 20px; color: #666;">
+                Completed on: {{ $item->completed_at->format('d/m/Y h:i A') }}
+            </span>
+            @endif
+        </div>
+
+        <!-- Signature Area -->
+        <div class="signature-area">
+            <div class="signature-line"></div>
+            <div class="signature-label">
+                Authorized Signature & Stamp
+            </div>
+        </div>
+
+        <!-- Print Button (Hidden when printing) -->
+        <div class="no-print">
+            <button onclick="window.print()" class="print-btn">
+                🖨️ Print Lab Report
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                e.preventDefault();
+                window.print();
+            }
+        });
+
+        // Optional: Auto-print on load (uncomment if needed)
+        // window.onload = function() {
+        //     setTimeout(function() {
+        //         window.print();
+        //     }, 500);
+        // };
+
+        // Optional: Auto-close after printing
+        window.onafterprint = function() {
+            setTimeout(function() {
+                // window.close();
+            }, 1000);
+        };
+    </script>
+</body>
+</html>
